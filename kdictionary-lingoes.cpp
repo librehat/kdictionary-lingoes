@@ -63,7 +63,7 @@ void kdictionary_lingoes::main()
     while(true) {
         std::cerr<<"Input the word you wish to define: ";//use cerr so that you can see this output even trans output to a file
         QString input = s.readLine();
-        std::cout<<getDef(input).toStdString()<<std::endl;
+        std::cout<<std::string(getDef(input).toUtf8().data())<<std::endl;
     }
 }
 
