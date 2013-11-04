@@ -24,15 +24,16 @@
 int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
-    if(argc <= 1) {
+    if(argc <= 2) {
         std::cerr<<"No input file. \n"
                  <<"Usage:\n"
-                 <<"./kdictionary-lingoes <LD2/LDX FILE>\n"
+                 <<"./kdictionary-lingoes <LD2/LDX FILE> <OUTPUT FILE>\n"
                  <<"Control/Ctrl + C to exit.\n\n";
         exit(1);
     }
     QString ld2file(argv[1]);
+    QString outputfile(argv[2]);
     kdictionary_lingoes foo(ld2file);
-    foo.main();
-    return app.exec();
+    foo.main(outputfile);
+    //return app.exec();
 }

@@ -23,49 +23,34 @@
 #include <QtCore/QObject>
 #include <QTextDecoder>
 #include <QTextCodec>
-#include <QStringList>
 #include <iostream>
-
-class SensitiveStringDecoder 
-{
-public:
-    SensitiveStringDecoder();
-    virtual ~SensitiveStringDecoder();
-    void setName(QString&);
-    QString name;
-    QString decode(QByteArray&, const int, const int);
-};
 
 class kdictionary_lingoes : public QObject
 {
 Q_OBJECT
 public:
-    kdictionary_lingoes(QString);
+    kdictionary_lingoes(QString&);
     virtual ~kdictionary_lingoes();
-    void main();
-    void readDictionary(int offsetWithIndex);
+    void main(QString&);
     int getInt(int);
     int getInt(QByteArray&, int);
     short getShort(int);
     long getLong(int);
     QString toHexString(long int);
     QString toHexString(int);
-    QString getDef(QString&);
 private:
     int position;
     int inflated_pos;
     QString ld2file;
     QByteArray ld2ByteArray;
-    QStringList AVAIL_ENCODINGS;//Define the encodings determined later.
-    SensitiveStringDecoder lddecoder;
-    QStringList defs;//Store all definitioins
-    QStringList words;//Store all words
+    QTextCodec* xmlc;//XML Encoding
+    QTextCodec* wordc;//Words Encoding
+    void readDictionary(int offsetWithIndex, QString&);
     void inflateData(QList<int>&, QByteArray&);
     void decompress(QByteArray&, int, int);
-    void extract(int a[], QByteArray&, int, int);
-    QStringList detectEncodings(QByteArray&, int, int, const int, const int, int a[], QString s[]);
-    void readDefinitionData(QByteArray&, int, int, const int, QString, QString, int a[], QString s[], int);
-    //void readWordsData(QByteArray& inflatedBytes, int offsetWords, const int dataLen, int idxData[]);
+    void extract(int a[], QByteArray&, int, int, QString&);
+    void detectEncodings(QByteArray&, int, int, const int, int a[]);
+    void readDefinitionData(QByteArray&, int, int, const int, int a[], QString s[], int);
     void getIdxData(QByteArray&, int, int a[]);
     QString strip(QString);
 };

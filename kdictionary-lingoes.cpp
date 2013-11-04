@@ -22,7 +22,7 @@
 #include <QDataStream>
 #include <QTextStream>
 
-kdictionary_lingoes::kdictionary_lingoes(QString openFile)
+kdictionary_lingoes::kdictionary_lingoes(QString& openFile)
 {
     ld2file = openFile;
     QFile file(ld2file);
@@ -31,15 +31,14 @@ kdictionary_lingoes::kdictionary_lingoes(QString openFile)
     file.close();
     position = 0;
     inflated_pos = 0;
-    AVAIL_ENCODINGS<<"UTF-8"<<"UTF-16LE"<<"UTF-16BE"<<"EUC-JP";
 }
 
-void kdictionary_lingoes::main()
+void kdictionary_lingoes::main(QString& outputfile)
 {
     std::cout<<"File: "<<ld2file.toStdString()<<"\n";
     std::cout<<"Type: "<<QString::fromAscii(ld2ByteArray.mid(1, 3)).toStdString()<<"\n";
     std::cout<<"Version: "<<getShort(0x18)<<"."<<getShort(0x1A)<<"\n";
-    std::cout<<"ID: 0x"<<toHexString(getLong(0x1C)).toStdString()<<"\n";//Wrong!
+    std::cout<<"ID: 0x"<<toHexString(getLong(0x1C)).toStdString()<<"\n";
     int offsetData = getInt(0x5C) + 0x60;
     if(ld2ByteArray.size() > offsetData) {
         std::cout<<"Summary Addr: "<<toHexString(offsetData).toStdString()<<"\n";
@@ -47,10 +46,10 @@ void kdictionary_lingoes::main()
         std::cout<<"Summary Type: "<<toHexString(dtype).toStdString()<<"\n";
         int offsetWithInfo = getInt(offsetData + 4) + offsetData + 12;
         if(dtype == 3) {
-            readDictionary(offsetData);
+            readDictionary(offsetData, outputfile);
         }
         else if(ld2ByteArray.size() > offsetWithInfo - 0x1C) {
-            readDictionary(offsetWithInfo);
+            readDictionary(offsetWithInfo, outputfile);
         }
         else {
             std::cerr<<"This File Doesn't Contain Dictionary."<<"\n";
@@ -59,18 +58,12 @@ void kdictionary_lingoes::main()
     else {
         std::cerr<<"This File Doesn't Contain Dictionary."<<"\n";
     }
-    QTextStream s(stdin);
-    while(true) {
-        std::cerr<<"Input the word you wish to define: ";//use cerr so that you can see this output even trans output to a file
-        QString input = s.readLine();
-        std::cout<<std::string(getDef(input).toUtf8().data())<<std::endl;
-    }
 }
 
 kdictionary_lingoes::~kdictionary_lingoes()
 {}
 
-void kdictionary_lingoes::readDictionary(int offsetWithIndex)
+void kdictionary_lingoes::readDictionary(int offsetWithIndex, QString& outputfile)
 {
     //analyze dictionary file's header
     std::cout<<"Dictionary Type: 0x"<<getInt(offsetWithIndex)<<std::endl;
@@ -107,7 +100,7 @@ void kdictionary_lingoes::readDictionary(int offsetWithIndex)
             idxArray[i] = getInt(position);
             position += sizeof(int);
         }
-        extract(idxArray, inflatedData, inflatedWordsIndexLength, inflatedWordsIndexLength + inflatedWordsLength);
+        extract(idxArray, inflatedData, inflatedWordsIndexLength, inflatedWordsIndexLength + inflatedWordsLength, outputfile);
     } else {
         std::cerr<<"ERROR: Inflated Data is Empty."<<std::endl;
     }
@@ -115,7 +108,7 @@ void kdictionary_lingoes::readDictionary(int offsetWithIndex)
 
 void kdictionary_lingoes::inflateData(QList<int>& deflateStreams, QByteArray& inflatedData)
 {
-    std::cout<<"Decompressing "<<deflateStreams.size()<<" data streams."<<"\n";
+    std::cout<<"Decompressing "<<deflateStreams.size()<<" data streams."<<std::endl;
     int startOffset = position;
     int offset = -1;
     int lastOffset = startOffset;
@@ -146,78 +139,64 @@ inline void kdictionary_lingoes::decompress(QByteArray& inflatedData, int offset
     }
 }
 
-void kdictionary_lingoes::extract(int idxArray[], QByteArray& inflatedBytes, int offsetDefs, int offsetXml)
+void kdictionary_lingoes::extract(int idxArray[], QByteArray& inflatedBytes, int offsetDefs, int offsetXml, QString& outputfile)
 {
-    //QByteArray indexBytes;
-    //QByteArray defsBytes;
-    //QByteArray xmlBytes;
-    //QByteArray outputBytes;
+    QFile fileout(outputfile);
+    fileout.open(QIODevice::WriteOnly|QIODevice::Text);
+    QTextStream out(&fileout);
     int counter = 0;
     const int dataLen = 10;
     const int defTotal = (offsetDefs / dataLen) - 1;
-    //QString words[defTotal];
+    QString line;
     int idxData[6];
     QString defData[2];
-    QStringList encodings = detectEncodings(inflatedBytes, offsetDefs, offsetXml, defTotal, dataLen, idxData, defData);
+    detectEncodings(inflatedBytes, offsetDefs, offsetXml, defTotal, idxData);
     
     inflated_pos = 8;
     for (int i = 0; i < defTotal; i++) {
-        readDefinitionData(inflatedBytes, offsetDefs, offsetXml, dataLen, encodings.at(0), encodings.at(1), idxData, defData, i);
-        //words[i] = defData[0];
-        words << defData[0];
-        defs << defData[1];
-        /*defsBytes.append(defData[0]);
-        defsBytes.append("\n");
-        
-        xmlBytes.append(defData[1]);
-        xmlBytes.append("\n");
-        
-        outputBytes.append(defData[0]);
-        outputBytes.append("=");
-        outputBytes.append(defData[1]);
-        outputBytes.append("\n");
-        */
-        
-        //std::cout<<defData[0].toStdString()<<" = "<<defData[1].toStdString()<<std::endl;
+        readDefinitionData(inflatedBytes, offsetDefs, offsetXml, dataLen, idxData, defData, i);
+        line.append(defData[0]);
+        line.append("=");
+        line.append(defData[1]);
+        out<<line<<endl;
+        out.flush();
+        line.clear();
         counter++;
     }
-    /*for (int i = 0; i < sizeof(idxArray); i++) {
-        const int idx = idxArray[i];
-        indexBytes.append(words[idx]);
-        indexBytes.append(", ");
-        indexBytes.append(idx);
-        indexBytes.append("\n");
-    }*/
+
+    fileout.close();
     std::cout<<"Extracted "<<counter<<" entries."<<std::endl;
 }
 
-QStringList kdictionary_lingoes::detectEncodings(QByteArray& inflatedBytes, int offsetWords, int offsetXml, const int defTotal, const int dataLen, int idxData[], QString defData[])
+void kdictionary_lingoes::detectEncodings(QByteArray& inflatedBytes, int offsetWords, int offsetXml, const int defTotal, int idxData[])
 {
     /*
      * Try to detect the Encodings.
      * Currently support:
-     * UTF-8, UTF-16LE, UTF-16BE, EUC-JP (see constructor function)
+     * UTF-8, UTF-16LE, UTF-16BE, UTF-32 (implement by QTextCodec::codecForUtfText)
+     * TODO: Its accuracy needs to be improved! Or find the codec definition in LD2/LDX header.
      */
-    const int test = std::min(defTotal ,10);
-    for (int j=0; j< AVAIL_ENCODINGS.size(); j++) {
-        for (int k=0; k< AVAIL_ENCODINGS.size(); k++) {
-            try {
-                for (int i=0; i< test; i++) {
-                    readDefinitionData(inflatedBytes, offsetWords, offsetXml, dataLen, AVAIL_ENCODINGS.at(j), AVAIL_ENCODINGS.at(k), idxData, defData, i);
-                }
-                std::cout<<"Phrases Encoding: "<<AVAIL_ENCODINGS.at(j).toStdString()<<std::endl;
-                std::cout<<"XML Encoding: "<<AVAIL_ENCODINGS.at(k).toStdString()<<std::endl;
-                return (QStringList() << AVAIL_ENCODINGS.at(j) << AVAIL_ENCODINGS.at(k));
-            } catch (...){
-                //ignore
-            }
-        }
+    getIdxData(inflatedBytes, 0, idxData);
+    const int lastXmlPos = idxData[1];
+    const int lastWordPos = idxData[0] + 4 * idxData[3];
+    const int currentWordOffset = idxData[4];
+    const int currenXmlOffset = idxData[5];
+    QByteArray wordbytes = inflatedBytes.mid(offsetWords + lastWordPos, currentWordOffset - lastWordPos);
+    QByteArray xmlbytes = inflatedBytes.mid(offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos);
+    
+    //Encoded in UTF-8 in general.
+    wordc = QTextCodec::codecForUtfText(wordbytes, QTextCodec::codecForName("UTF-8"));
+    
+    //Test UTF-16LE at first.    
+    xmlc = QTextCodec::codecForName("UTF-16LE");
+    if(xmlc->toUnicode(xmlbytes).isEmpty()){
+        xmlc = QTextCodec::codecForUtfText(xmlbytes, QTextCodec::codecForName("UTF-8"));
     }
-    std::cerr<<"Detecting encodings failed. Choose UTF-16LE to continue."<<std::endl;
-    return (QStringList() << AVAIL_ENCODINGS.at(1) << AVAIL_ENCODINGS.at(1));
+    std::cout<<"Phrases Encoding: "<<wordc->name().data()<<std::endl;
+    std::cout<<"XML Encoding: "<<xmlc->name().data()<<std::endl;
 }
 
-void kdictionary_lingoes::readDefinitionData(QByteArray& inflatedBytes, int offsetWords, int offsetXml, const int dataLen, QString wordStringcodec, QString xmlStringcodec, int idxData[], QString defData[], int i)
+void kdictionary_lingoes::readDefinitionData(QByteArray& inflatedBytes, int offsetWords, int offsetXml, const int dataLen, int idxData[], QString defData[], int i)
 {
     //get all data from definition area
     getIdxData(inflatedBytes, dataLen * i, idxData);
@@ -226,36 +205,24 @@ void kdictionary_lingoes::readDefinitionData(QByteArray& inflatedBytes, int offs
     int refs = idxData[3];
     const int currentWordOffset = idxData[4];
     int currenXmlOffset = idxData[5];
-    lddecoder.setName(xmlStringcodec);
-    QString xml = strip(lddecoder.decode(inflatedBytes, offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos));
+    QString xml = strip(xmlc->toUnicode(inflatedBytes.mid(offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos)));
     while (refs-- > 0) {
         int ref = getInt(inflatedBytes, offsetWords + lastWordPos);
         getIdxData(inflatedBytes, dataLen * ref, idxData);
         lastXmlPos = idxData[1];
         currenXmlOffset = idxData[5];
         if (xml.isEmpty()) {
-            xml = strip(lddecoder.decode(inflatedBytes, offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos));
+            xml = strip(xmlc->toUnicode(inflatedBytes.mid(offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos)));
         } else {
-            xml = strip(lddecoder.decode(inflatedBytes, offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos)) + ", " + xml;
+            xml = strip(xmlc->toUnicode(inflatedBytes.mid(offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos))) + ", " + xml;
         }
         lastWordPos += 4;
     }
     defData[1] = xml;
-    lddecoder.setName(wordStringcodec);
-    QString word = lddecoder.decode(inflatedBytes, offsetWords + lastWordPos, currentWordOffset - lastWordPos);
+    QString word = wordc->toUnicode(inflatedBytes.mid(offsetWords + lastWordPos, currentWordOffset - lastWordPos));
     defData[0] = word;
 }
 
-/*
-void kdictionary_lingoes::readWordsData(QByteArray& inflatedBytes, int offsetWords, const int dataLen, int idxData[])
-{
-    getIdxData(inflatedBytes, dataLen * i, idxData);
-    int lastWordPos = idxData[0];
-    const int currentWordOffset = idxData[4];
-    lastWordPos += idxData[3] * 4;
-    words<<lddecoder.decode(inflatedBytes, offsetWords + lastWordPos, currentWordOffset - lastWordPos);
-}
-*/
 QString kdictionary_lingoes::strip(QString xml)
 {
     /*
@@ -306,19 +273,6 @@ void kdictionary_lingoes::getIdxData(QByteArray& inflatedBytes, int pos, int wor
     inflated_pos += sizeof(int);
 }
 
-QString kdictionary_lingoes::getDef(QString& word)
-{
-    if(words.isEmpty()) {
-        std::cerr<<"NO DATA!"<<std::endl;
-        return QString("");
-    }
-    else {
-        int i = words.indexOf(word);
-        if(i != -1)     return defs.at(i);
-        else    return QString("No result.");
-    }
-}
-
 //Inspired by https://github.com/Dasister/Game-Server-Query/blob/master/sourcequery.cpp
 inline int kdictionary_lingoes::getInt(int index)
 {
@@ -349,30 +303,4 @@ inline QString kdictionary_lingoes::toHexString(int num)
 {
     return QString::number(num, 16).toUpper();
 }
-
-// class of SensitiveStringDecoder
-SensitiveStringDecoder::SensitiveStringDecoder()
-{}
-
-SensitiveStringDecoder::~SensitiveStringDecoder()
-{}
-
-void SensitiveStringDecoder::setName(QString& nm)
-{
-    //Name must be one of codec that Qt support. i.e. UTF-8
-    name = nm;
-}
-
-QString SensitiveStringDecoder::decode(QByteArray& ba, const int off, const int len)
-{
-    QString result;
-    try {
-        QTextDecoder td(QTextCodec::codecForName(name.toLocal8Bit()));
-        result = td.toUnicode(ba.mid(off, len));
-    } catch (std::exception e) {
-        std::cerr<<e.what()<<std::endl;
-    }
-    return result;
-}
-
 #include "kdictionary-lingoes.moc"
