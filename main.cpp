@@ -18,20 +18,28 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 #include <QCoreApplication>
+#include <QFileInfo>
 #include "kdictionary-lingoes.h"
 
 
 int main(int argc, char** argv)
 {
-    QCoreApplication app(argc, argv);
+    //QCoreApplication app(argc, argv);
     if(argc <= 2) {
         std::cerr<<"No input file. \n"
                  <<"Usage:\n"
                  <<"./kdictionary-lingoes <LD2/LDX FILE> <OUTPUT FILE>\n"
-                 <<"Control/Ctrl + C to exit.\n\n";
+                 <<"Control/Ctrl + C to exit.\n"<<std::endl;
         exit(1);
     }
-    QString ld2file(argv[1]);
+
+    QFileInfo ld2FileInfo(argv[1]);
+    if (!ld2FileInfo.exists()) {
+        std::cerr<<"Error: Input file doesn't exist."<<std::endl;
+        exit(2);
+    }
+
+    QString ld2file = ld2FileInfo.canonicalFilePath();
     QString outputfile(argv[2]);
     kdictionary_lingoes foo(ld2file);
     foo.main(outputfile);
