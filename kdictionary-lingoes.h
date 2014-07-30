@@ -27,7 +27,9 @@
 
 class kdictionary_lingoes : public QObject
 {
+
 Q_OBJECT
+
 public:
     kdictionary_lingoes(QString&);
     virtual ~kdictionary_lingoes();
@@ -38,6 +40,7 @@ public:
     long getLong(int);
     QString toHexString(long int);
     QString toHexString(int);
+
 private:
     int position;
     int inflated_pos;
@@ -49,9 +52,11 @@ private:
     void inflateData(QList<int>&, QByteArray&);
     void decompress(QByteArray&, int, int);
     void extract(int a[], QByteArray&, int, int, QString&);
-    void detectEncodings(QByteArray&, int, int, const int, int a[]);
+    void detectEncodings(QByteArray&, int, int, const int, const int, int a[]);
     void readDefinitionData(QByteArray&, int, int, const int, int a[], QString s[], int);
     void getIdxData(QByteArray&, int, int a[]);
     QString strip(QString);
+
+    const static QList<QByteArray> available_encodings;
 };
 #endif // kdictionary_lingoes_H

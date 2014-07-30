@@ -35,6 +35,8 @@ kdictionary_lingoes::kdictionary_lingoes(QString& openFile)
     inflated_pos = 0;
 }
 
+const QList<QByteArray> kdictionary_lingoes::available_encodings = QList<QByteArray>() << "UTF-8" << "UTF-16LE" << "UTF-16BE" << "EUC-JP";
+
 void kdictionary_lingoes::main(QString& outputfile)
 {
     qDebug() << QString("File: ").append(ld2file);
@@ -152,7 +154,7 @@ void kdictionary_lingoes::extract(int idxArray[], QByteArray& inflatedBytes, int
     QString line;
     int idxData[6];
     QString defData[2];
-    detectEncodings(inflatedBytes, offsetDefs, offsetXml, defTotal, idxData);
+    detectEncodings(inflatedBytes, offsetDefs, offsetXml, defTotal, dataLen, idxData);
     
     inflated_pos = 8;
     for (int i = 0; i < defTotal; i++) {
@@ -170,30 +172,51 @@ void kdictionary_lingoes::extract(int idxArray[], QByteArray& inflatedBytes, int
     qDebug() << QString("Extracted %1 entries.").arg(QString::number(counter));
 }
 
-void kdictionary_lingoes::detectEncodings(QByteArray& inflatedBytes, int offsetWords, int offsetXml, const int defTotal, int idxData[])
+void kdictionary_lingoes::detectEncodings(QByteArray& inflatedBytes, int offsetWords, int offsetXml, const int defTotal, const int dataLen, int idxData[])
 {
     /*
      * Try to detect the Encodings.
-     * Currently support:
-     * UTF-8, UTF-16LE, UTF-16BE, UTF-32 (implement by QTextCodec::codecForUtfText)
      * TODO: Its accuracy needs to be improved! Or find the codec definition in LD2/LDX header.
      */
-    getIdxData(inflatedBytes, 0, idxData);
-    const int lastXmlPos = idxData[1];
-    const int lastWordPos = idxData[0] + 4 * idxData[3];
-    const int currentWordOffset = idxData[4];
-    const int currenXmlOffset = idxData[5];
-    QByteArray wordbytes = inflatedBytes.mid(offsetWords + lastWordPos, currentWordOffset - lastWordPos);
-    QByteArray xmlbytes = inflatedBytes.mid(offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos);
-    
-    //Encoded in UTF-8 in general.
-    wordc = QTextCodec::codecForUtfText(wordbytes, QTextCodec::codecForName("UTF-8"));
-    
-    //Test UTF-16LE at first.    
-    xmlc = QTextCodec::codecForName("UTF-16LE");
-    if(xmlc->toUnicode(xmlbytes).isEmpty()){
-        xmlc = QTextCodec::codecForUtfText(xmlbytes, QTextCodec::codecForName("UTF-8"));
+    int wordc_id = 0, xmlc_id = 0;
+    int testIdx = qMin(defTotal, 10);
+
+    while (--testIdx > 0) {
+        getIdxData(inflatedBytes, dataLen * testIdx, idxData);
+        const int lastXmlPos = idxData[1];
+        const int lastWordPos = idxData[0] + 4 * idxData[3];
+        const int currentWordOffset = idxData[4];
+        const int currenXmlOffset = idxData[5];
+        QByteArray wordbytes = inflatedBytes.mid(offsetWords + lastWordPos, currentWordOffset - lastWordPos);
+        QByteArray xmlbytes = inflatedBytes.mid(offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos);
+
+        wordc = QTextCodec::codecForName(available_encodings.at(wordc_id));
+        try {
+            wordc->toUnicode(wordbytes);
+        }
+        catch (std::exception) {
+            if (wordc_id < available_encodings.size() - 1) {
+                ++wordc_id;
+            }
+            else {
+                qWarning() << "Cannot detect a valid encoding for Words. Output may be corrupted.";
+            }
+        }
+
+        xmlc = QTextCodec::codecForName(available_encodings.at(xmlc_id));
+        try {
+            xmlc->toUnicode(xmlbytes);
+        }
+        catch (std::exception) {
+            if (xmlc_id < available_encodings.size() - 1) {
+                ++xmlc_id;
+            }
+            else {
+                qWarning() << "Cannot detect a valid encoding for XML. Output may be corrupted.";
+            }
+        }
     }
+
     qDebug() << QString("Phrases Encoding: %1").arg(QString(wordc->name()));
     qDebug() << QString("XML Encoding: %1").arg(QString(xmlc->name()));
 }
@@ -229,6 +252,7 @@ QString kdictionary_lingoes::strip(QString xml)
 {
     /*
      * Strip some formats characters.
+     * TODO: strip HTML tags such as <TD> <TR>
      */
     int open = 0;
     int end = 0;
