@@ -18,13 +18,12 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 #include "kdictionary-lingoes.h"
-#include "kdictionary-lingoes.moc"
 #include <QFile>
 #include <QDebug>
 #include <QDataStream>
 #include <QTextStream>
 
-kdictionary_lingoes::kdictionary_lingoes(QString& openFile)
+kdictionary_lingoes::kdictionary_lingoes(const QString &openFile)
 {
     ld2file = openFile;
     QFile file(ld2file);
@@ -40,7 +39,7 @@ const QList<QByteArray> kdictionary_lingoes::available_encodings = QList<QByteAr
 void kdictionary_lingoes::main(QString& outputfile)
 {
     qDebug() << QString("File: ").append(ld2file);
-    qDebug() << QString("Type: ").append(QString::fromAscii(ld2ByteArray.mid(1, 3)));
+    qDebug() << QString("Type: ").append(QString::fromLatin1(ld2ByteArray.mid(1, 3)));
     qDebug() << QString("Version: %1.%2").arg(QString::number(getShort(0x18)), QString::number(getShort(0x1A)));
     qDebug() << QString("ID: 0x").append(toHexString(getLong(0x1C)));
     int offsetData = getInt(0x5C) + 0x60;

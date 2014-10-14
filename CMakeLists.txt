@@ -1,12 +1,13 @@
-project(kdictionary-lingoes)
-cmake_minimum_required(VERSION 2.6)
-find_package(Qt4 REQUIRED)
+cmake_minimum_required(VERSION 2.8.11)
 
-include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR})
+project(kdictionary-lingoes)
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
+
+find_package(Qt5Core REQUIRED)
 
 set(kdictionary-lingoes_SRCS kdictionary-lingoes.cpp main.cpp)
-qt4_automoc(${kdictionary-lingoes_SRCS})
-add_executable(kdictionary-lingoes ${kdictionary-lingoes_SRCS})
-target_link_libraries(kdictionary-lingoes ${QT_QTCORE_LIBRARY})
 
-install(TARGETS kdictionary-lingoes RUNTIME DESTINATION bin)
+add_executable(kdictionary-lingoes ${kdictionary-lingoes_SRCS})
+target_link_libraries(kdictionary-lingoes Qt5::Core)

@@ -20,7 +20,7 @@
 #ifndef kdictionary_lingoes_H
 #define kdictionary_lingoes_H
 
-#include <QtCore/QObject>
+#include <QObject>
 #include <QTextDecoder>
 #include <QTextCodec>
 #include <iostream>
@@ -31,7 +31,7 @@ class kdictionary_lingoes : public QObject
 Q_OBJECT
 
 public:
-    kdictionary_lingoes(QString&);
+    kdictionary_lingoes(const QString &);
     virtual ~kdictionary_lingoes();
     void main(QString&);
     int getInt(int);
