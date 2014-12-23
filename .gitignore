@@ -16,3 +16,6 @@
 build/
 .kdev4/
 *.kdev4
+
+# CMake user file
+CMakeLists.txt.user
