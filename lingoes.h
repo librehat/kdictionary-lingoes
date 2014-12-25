@@ -17,20 +17,20 @@
  *   Free Software Foundation, Inc.,
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-#ifndef kdictionary_lingoes_H
-#define kdictionary_lingoes_H
+#ifndef lingoes_H
+#define lingoes_H
 
 #include <QObject>
 #include <QTextDecoder>
 #include <QTextCodec>
 #include <exception>
 
-class kdictionary_lingoes : public QObject
+class Lingoes : public QObject
 {
 Q_OBJECT
 
 public:
-    kdictionary_lingoes(const QString &);
+    Lingoes(const QString &);
     void extractToFile(QString&);
     int getInt(int);
     int getInt(QByteArray&, int);
@@ -57,4 +57,4 @@ private:
 
     const static QList<QByteArray> available_encodings;
 };
-#endif // kdictionary_lingoes_H
+#endif // lingoes_H

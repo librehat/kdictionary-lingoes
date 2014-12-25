@@ -21,7 +21,7 @@
 #include <QFileInfo>
 #include <QStringList>
 #include <QDebug>
-#include "kdictionary-lingoes.h"
+#include "lingoes.h"
 
 int main(int argc, char** argv)
 {
@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 
     QString ld2file = ld2FileInfo.canonicalFilePath();
     QString outputfile(app.arguments().at(2));
-    kdictionary_lingoes ext(ld2file);
+    Lingoes ext(ld2file);
     ext.extractToFile(outputfile);
 
     return 0;

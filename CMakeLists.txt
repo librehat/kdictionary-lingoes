@@ -7,7 +7,7 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(Qt5Core REQUIRED)
 
-set(kdictionary-lingoes_SRCS kdictionary-lingoes.cpp main.cpp)
+set(kdictionary-lingoes_SRCS lingoes.cpp main.cpp)
 
 add_executable(kdictionary-lingoes ${kdictionary-lingoes_SRCS})
 target_link_libraries(kdictionary-lingoes Qt5::Core)

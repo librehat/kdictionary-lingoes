@@ -17,13 +17,13 @@
  *   Free Software Foundation, Inc.,
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-#include "kdictionary-lingoes.h"
+#include "lingoes.h"
 #include <QFile>
 #include <QDebug>
 #include <QDataStream>
 #include <QTextStream>
 
-kdictionary_lingoes::kdictionary_lingoes(const QString &openFile)
+Lingoes::Lingoes(const QString &openFile)
 {
     ld2file = openFile;
     QFile file(ld2file);
@@ -34,9 +34,9 @@ kdictionary_lingoes::kdictionary_lingoes(const QString &openFile)
     inflated_pos = 0;
 }
 
-const QList<QByteArray> kdictionary_lingoes::available_encodings = QList<QByteArray>() << "UTF-8" << "UTF-16LE" << "UTF-16BE" << "EUC-JP";
+const QList<QByteArray> Lingoes::available_encodings = QList<QByteArray>() << "UTF-8" << "UTF-16LE" << "UTF-16BE" << "EUC-JP";
 
-void kdictionary_lingoes::extractToFile(QString& outputfile)
+void Lingoes::extractToFile(QString& outputfile)
 {
     qDebug() << "File:" << ld2file;
     qDebug() << "Type:" << ld2ByteArray.mid(1, 3);
@@ -63,7 +63,7 @@ void kdictionary_lingoes::extractToFile(QString& outputfile)
     }
 }
 
-void kdictionary_lingoes::readDictionary(int offsetWithIndex, QString& outputfile)
+void Lingoes::readDictionary(int offsetWithIndex, QString& outputfile)
 {
     //analyze dictionary file's header
     qDebug() << "Dictionary Type:" << "0x" + QByteArray::number(getInt(offsetWithIndex));
@@ -106,7 +106,7 @@ void kdictionary_lingoes::readDictionary(int offsetWithIndex, QString& outputfil
     }
 }
 
-void kdictionary_lingoes::inflateData(QList<int>& deflateStreams, QByteArray& inflatedData)
+void Lingoes::inflateData(QList<int>& deflateStreams, QByteArray& inflatedData)
 {
     qDebug() << QString("Decompressing %1 data streams.").arg(deflateStreams.size());
     int startOffset = position;
@@ -125,7 +125,7 @@ void kdictionary_lingoes::inflateData(QList<int>& deflateStreams, QByteArray& in
     }
 }
 
-inline void kdictionary_lingoes::decompress(QByteArray& inflatedData, int offset, int length)
+inline void Lingoes::decompress(QByteArray& inflatedData, int offset, int length)
 {
     //uncompress deflate datastream
     try {
@@ -139,7 +139,7 @@ inline void kdictionary_lingoes::decompress(QByteArray& inflatedData, int offset
     }
 }
 
-void kdictionary_lingoes::extract(int idxArray[], QByteArray& inflatedBytes, int offsetDefs, int offsetXml, QString& outputfile)
+void Lingoes::extract(int idxArray[], QByteArray& inflatedBytes, int offsetDefs, int offsetXml, QString& outputfile)
 {
     QFile fileout(outputfile);
     fileout.open(QIODevice::WriteOnly|QIODevice::Text);
@@ -168,7 +168,7 @@ void kdictionary_lingoes::extract(int idxArray[], QByteArray& inflatedBytes, int
     qDebug() << "Extracted" << counter << "entries.";
 }
 
-void kdictionary_lingoes::detectEncodings(QByteArray& inflatedBytes, int offsetWords, int offsetXml, const int defTotal, const int dataLen, int idxData[])
+void Lingoes::detectEncodings(QByteArray& inflatedBytes, int offsetWords, int offsetXml, const int defTotal, const int dataLen, int idxData[])
 {
     /*
      * Try to detect the Encodings.
@@ -217,7 +217,7 @@ void kdictionary_lingoes::detectEncodings(QByteArray& inflatedBytes, int offsetW
     qDebug() << "XML Encoding:" << xmlc->name();
 }
 
-void kdictionary_lingoes::readDefinitionData(QByteArray& inflatedBytes, int offsetWords, int offsetXml, const int dataLen, int idxData[], QString defData[], int i)
+void Lingoes::readDefinitionData(QByteArray& inflatedBytes, int offsetWords, int offsetXml, const int dataLen, int idxData[], QString defData[], int i)
 {
     //get all data from definition area
     getIdxData(inflatedBytes, dataLen * i, idxData);
@@ -244,7 +244,7 @@ void kdictionary_lingoes::readDefinitionData(QByteArray& inflatedBytes, int offs
     defData[0] = word;
 }
 
-QString kdictionary_lingoes::strip(QString xml)
+QString Lingoes::strip(QString xml)
 {
     /*
      * Strip some formats characters.
@@ -278,7 +278,7 @@ QString kdictionary_lingoes::strip(QString xml)
     return QString();
 }
 
-void kdictionary_lingoes::getIdxData(QByteArray& inflatedBytes, int pos, int wordIdxData[])
+void Lingoes::getIdxData(QByteArray& inflatedBytes, int pos, int wordIdxData[])
 {
     inflated_pos = pos;
     wordIdxData[0] = getInt(inflatedBytes ,inflated_pos);
@@ -296,32 +296,32 @@ void kdictionary_lingoes::getIdxData(QByteArray& inflatedBytes, int pos, int wor
 }
 
 //Inspired by https://github.com/Dasister/Game-Server-Query/blob/master/sourcequery.cpp
-inline int kdictionary_lingoes::getInt(int index)
+inline int Lingoes::getInt(int index)
 {
     return *(reinterpret_cast<int *>(ld2ByteArray.mid(index, sizeof(int)).data()));
 }
 
-inline int kdictionary_lingoes::getInt(QByteArray& ba, int index)
+inline int Lingoes::getInt(QByteArray& ba, int index)
 {
     return *(reinterpret_cast<int *>(ba.mid(index, sizeof(int)).data()));
 }
 
-inline qint16 kdictionary_lingoes::getShort(int index)
+inline qint16 Lingoes::getShort(int index)
 {
     return *(reinterpret_cast<qint16 *>(ld2ByteArray.mid(index, sizeof(qint16)).data()));
 }
 
-inline qint32 kdictionary_lingoes::getLong(int index)
+inline qint32 Lingoes::getLong(int index)
 {
     return *(reinterpret_cast<qint32*>(ld2ByteArray.mid(index, sizeof(qint32)).data()));
 }
 
-inline QByteArray kdictionary_lingoes::toHexString(qint32 num)
+inline QByteArray Lingoes::toHexString(qint32 num)
 {
     return QByteArray::number(num, 16).toUpper();
 }
 
-inline QByteArray kdictionary_lingoes::toHexString(qint16 num)
+inline QByteArray Lingoes::toHexString(qint16 num)
 {
     return QByteArray::number(num, 16).toUpper();
 }
