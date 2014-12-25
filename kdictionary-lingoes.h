@@ -34,8 +34,8 @@ public:
     void extractToFile(QString&);
     int getInt(int);
     int getInt(QByteArray&, int);
-    qint16 getShort(int);
-    qint32 getLong(int);
+    qint16 getShort(int);//the short is 16-bit integer
+    qint32 getLong(int);//while the long is actually 32-bit integer.
     QByteArray toHexString(qint32);
     QByteArray toHexString(qint16);
 
