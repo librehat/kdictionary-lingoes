@@ -23,23 +23,21 @@
 #include <QObject>
 #include <QTextDecoder>
 #include <QTextCodec>
-#include <iostream>
+#include <exception>
 
 class kdictionary_lingoes : public QObject
 {
-
 Q_OBJECT
 
 public:
     kdictionary_lingoes(const QString &);
-    virtual ~kdictionary_lingoes();
-    void main(QString&);
+    void extractToFile(QString&);
     int getInt(int);
     int getInt(QByteArray&, int);
-    short getShort(int);
-    long getLong(int);
-    QString toHexString(long int);
-    QString toHexString(int);
+    qint16 getShort(int);
+    qint64 getLong(int);
+    QByteArray toHexString(qint64);
+    QByteArray toHexString(int);
 
 private:
     int position;

@@ -20,27 +20,29 @@
 #include <QCoreApplication>
 #include <QFileInfo>
 #include <QStringList>
+#include <QDebug>
 #include "kdictionary-lingoes.h"
-
 
 int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
     if(app.arguments().count() < 3) {
-        std::cerr<<"Insufficient arguments.\n"
-                 <<"Usage:\n"
-                 <<"./kdictionary-lingoes <LD2/LDX FILE> <OUTPUT FILE>\n"<<std::endl;
+        qCritical()<<"Insufficient arguments.\n"
+                   <<"Usage:\n"
+                   <<"./kdictionary-lingoes <LD2/LDX FILE> <OUTPUT FILE>\n";
         exit(1);
     }
 
     QFileInfo ld2FileInfo(app.arguments().at(1));
     if (!ld2FileInfo.exists()) {
-        std::cerr<<"Error: Input file doesn't exist."<<std::endl;
+        qCritical()<<"Error: Input file doesn't exist.";
         exit(2);
     }
 
     QString ld2file = ld2FileInfo.canonicalFilePath();
     QString outputfile(app.arguments().at(2));
-    kdictionary_lingoes foo(ld2file);
-    foo.main(outputfile);
+    kdictionary_lingoes ext(ld2file);
+    ext.extractToFile(outputfile);
+
+    return 0;
 }
