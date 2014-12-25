@@ -22,6 +22,7 @@
 #include <QDebug>
 #include <QDataStream>
 #include <QTextStream>
+#include <iostream>
 
 Lingoes::Lingoes(const QString &openFile)
 {
@@ -34,7 +35,7 @@ Lingoes::Lingoes(const QString &openFile)
     inflated_pos = 0;
 }
 
-const QList<QByteArray> Lingoes::available_encodings = QList<QByteArray>() << "UTF-8" << "UTF-16LE" << "UTF-16BE" << "EUC-JP";
+const QList<QByteArray> Lingoes::availableEncodings = QList<QByteArray>() << "UTF-8" << "UTF-16LE" << "UTF-16BE" << "EUC-JP";
 
 void Lingoes::extractToFile(QString& outputfile)
 {
@@ -152,13 +153,14 @@ void Lingoes::extract(int idxArray[], QByteArray& inflatedBytes, int offsetDefs,
     QString defData[2];
     detectEncodings(inflatedBytes, offsetDefs, offsetXml, defTotal, dataLen, idxData);
     
+    qDebug() << "Extracting...";
     inflated_pos = 8;
     for (int i = 0; i < defTotal; i++) {
         readDefinitionData(inflatedBytes, offsetDefs, offsetXml, dataLen, idxData, defData, i);
         line.append(defData[0]);
-        line.append("=");
+        line.append(" = ");
         line.append(defData[1]);
-        out<<line<<endl;
+        out << line << endl;
         out.flush();
         line.clear();
         counter++;
@@ -172,26 +174,34 @@ void Lingoes::detectEncodings(QByteArray& inflatedBytes, int offsetWords, int of
 {
     /*
      * Try to detect the Encodings.
-     * TODO: Its accuracy needs to be improved! Or find the codec definition in LD2/LDX header.
+     * FIXME: for some languages such as Japanese, QString::isSimpleText will return false even it's correct.
      */
     int wordc_id = 0, xmlc_id = 0;
     int testIdx = qMin(defTotal, 10);
 
-    while (--testIdx > 0) {
+    while (testIdx-- > 0) {//test at most 10 times
         getIdxData(inflatedBytes, dataLen * testIdx, idxData);
-        const int lastXmlPos = idxData[1];
-        const int lastWordPos = idxData[0] + 4 * idxData[3];
+        int lastWordPos = idxData[0];
+        int lastXmlPos = idxData[1];
+        int refs = idxData[3];
         const int currentWordOffset = idxData[4];
-        const int currenXmlOffset = idxData[5];
-        QByteArray wordbytes = inflatedBytes.mid(offsetWords + lastWordPos, currentWordOffset - lastWordPos);
-        QByteArray xmlbytes = inflatedBytes.mid(offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos);
-
-        wordc = QTextCodec::codecForName(available_encodings.at(wordc_id));
-        try {
-            wordc->toUnicode(wordbytes);
+        int currenXmlOffset = idxData[5];
+        QByteArray xmlBytes = inflatedBytes.mid(offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos);
+        while (refs-- > 0) {
+            int ref = getInt(inflatedBytes, offsetWords + lastWordPos);
+            getIdxData(inflatedBytes, dataLen * ref, idxData);
+            lastXmlPos = idxData[1];
+            currenXmlOffset = idxData[5];
+            xmlBytes.append(inflatedBytes.mid(offsetXml + lastXmlPos, currenXmlOffset - lastXmlPos));
+            lastWordPos += 4;
         }
-        catch (std::exception) {
-            if (wordc_id < available_encodings.size() - 1) {
+        QByteArray wordBytes = inflatedBytes.mid(offsetWords + lastWordPos, currentWordOffset - lastWordPos);
+
+        wordc = QTextCodec::codecForName(availableEncodings.at(wordc_id));
+        QString word_res = wordc->toUnicode(wordBytes);
+        qDebug() << wordc->name() << "decodes phrase as" << word_res;
+        if (!word_res.isSimpleText()) {
+            if (wordc_id < availableEncodings.size() - 1) {
                 ++wordc_id;
             }
             else {
@@ -199,12 +209,11 @@ void Lingoes::detectEncodings(QByteArray& inflatedBytes, int offsetWords, int of
             }
         }
 
-        xmlc = QTextCodec::codecForName(available_encodings.at(xmlc_id));
-        try {
-            xmlc->toUnicode(xmlbytes);
-        }
-        catch (std::exception) {
-            if (xmlc_id < available_encodings.size() - 1) {
+        xmlc = QTextCodec::codecForName(availableEncodings.at(xmlc_id));
+        QString xml_res = strip(xmlc->toUnicode(xmlBytes));
+        qDebug() << xmlc->name() << "decodes XML as" << xml_res;
+        if (!xml_res.isSimpleText()) {
+            if (xmlc_id < availableEncodings.size() - 1) {
                 ++xmlc_id;
             }
             else {
@@ -215,6 +224,28 @@ void Lingoes::detectEncodings(QByteArray& inflatedBytes, int offsetWords, int of
 
     qDebug() << "Phrases Encoding:" << wordc->name();
     qDebug() << "XML Encoding:" << xmlc->name();
+
+    //Before we can address encoding detection, let's give users a chance to specify codec.
+    QTextStream stdinStream(stdin);
+    QChar accepted;
+    qDebug() << "Continue with automatically detected encodings? (y/n)";
+    stdinStream >> accepted;
+    if (accepted == 'n' || accepted == 'N') {
+        QByteArray enc;
+        qDebug() << "Please input the encoding for phrases. Enter dd to use default. Default:" << wordc->name();
+        stdinStream >> enc;
+        if (enc != "dd") {
+            wordc = QTextCodec::codecForName(enc);
+        }
+        enc.clear();
+        qDebug() << "Please input the encoding for XML. Enter dd to use default. Default:" << xmlc->name();
+        stdinStream >> enc;
+        if (enc != "dd") {
+            xmlc = QTextCodec::codecForName(enc);
+        }
+        qDebug() << "Phrases Encoding:" << wordc->name();
+        qDebug() << "XML Encoding:" << xmlc->name();
+    }
 }
 
 void Lingoes::readDefinitionData(QByteArray& inflatedBytes, int offsetWords, int offsetXml, const int dataLen, int idxData[], QString defData[], int i)

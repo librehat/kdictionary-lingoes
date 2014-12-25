@@ -55,6 +55,6 @@ private:
     void getIdxData(QByteArray&, int, int a[]);
     QString strip(QString);
 
-    const static QList<QByteArray> available_encodings;
+    const static QList<QByteArray> availableEncodings;
 };
 #endif // lingoes_H
