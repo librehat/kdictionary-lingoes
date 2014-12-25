@@ -35,9 +35,9 @@ public:
     int getInt(int);
     int getInt(QByteArray&, int);
     qint16 getShort(int);
-    qint64 getLong(int);
-    QByteArray toHexString(qint64);
-    QByteArray toHexString(int);
+    qint32 getLong(int);
+    QByteArray toHexString(qint32);
+    QByteArray toHexString(qint16);
 
 private:
     int position;

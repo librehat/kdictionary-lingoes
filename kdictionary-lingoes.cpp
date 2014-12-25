@@ -89,7 +89,7 @@ void kdictionary_lingoes::readDictionary(int offsetWithIndex, QString& outputfil
     qDebug() << QString("Compressed Data Address/Size: 0x%1 / %2B").arg(toHexString(offsetCompressedData), QString::number(limit - offsetCompressedData));
     qDebug() << QString("Phrases Index Address/Size(Decompressed): 0x0 / %1B").arg(inflatedWordsIndexLength);
     qDebug() << QString("Phrases Address/Size(Decompressed): 0x%1 / %2B").arg(toHexString(inflatedWordsIndexLength), QString::number(inflatedWordsLength));
-    qDebug() << QString("XML Address/Size(Decompressed): 0x%1 / %2").arg(toHexString(inflatedWordsIndexLength + inflatedWordsLength), QString::number(inflatedXmlLength));
+    qDebug() << QString("XML Address/Size(Decompressed): 0x%1 / %2B").arg(toHexString(inflatedWordsIndexLength + inflatedWordsLength), QString::number(inflatedXmlLength));
     qDebug() << QString("File Size(Decompressed): %1KB").arg((inflatedWordsIndexLength + inflatedWordsLength + inflatedXmlLength) / 1024);
     QByteArray inflatedData;
     inflateData(deflateStreams, inflatedData);
@@ -311,17 +311,17 @@ inline qint16 kdictionary_lingoes::getShort(int index)
     return *(reinterpret_cast<qint16 *>(ld2ByteArray.mid(index, sizeof(qint16)).data()));
 }
 
-inline qint64 kdictionary_lingoes::getLong(int index)
+inline qint32 kdictionary_lingoes::getLong(int index)
 {
-    return *(reinterpret_cast<qint64 *>(ld2ByteArray.mid(index, sizeof(qint64)).data()));
+    return *(reinterpret_cast<qint32*>(ld2ByteArray.mid(index, sizeof(qint32)).data()));
 }
 
-inline QByteArray kdictionary_lingoes::toHexString(qint64 num)
+inline QByteArray kdictionary_lingoes::toHexString(qint32 num)
 {
     return QByteArray::number(num, 16).toUpper();
 }
 
-inline QByteArray kdictionary_lingoes::toHexString(int num)
+inline QByteArray kdictionary_lingoes::toHexString(qint16 num)
 {
     return QByteArray::number(num, 16).toUpper();
 }
