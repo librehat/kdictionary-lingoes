@@ -49,7 +49,7 @@ private:
     void readDictionary(int offsetWithIndex, QString&);
     void inflateData(QList<int>&, QByteArray&);
     void decompress(QByteArray&, int, int);
-    void extract(int a[], QByteArray&, int, int, QString&);
+    void extract(QByteArray&, int, int, QString&);
     void detectEncodings(QByteArray&, int, int, const int, const int, int a[]);
     void readDefinitionData(QByteArray&, int, int, const int, int a[], QString s[], int);
     void getIdxData(QByteArray&, int, int a[]);

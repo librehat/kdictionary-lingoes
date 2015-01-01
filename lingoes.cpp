@@ -95,13 +95,8 @@ void Lingoes::readDictionary(int offsetWithIndex, QString& outputfile)
     QByteArray inflatedData;
     inflateData(deflateStreams, inflatedData);
     if(!inflatedData.isEmpty()) {
-        position = offsetIndex;
-        int idxArray[definitions];
-        for (int i = 0; i < definitions; i++) {
-            idxArray[i] = getInt(position);
-            position += sizeof(int);
-        }
-        extract(idxArray, inflatedData, inflatedWordsIndexLength, inflatedWordsIndexLength + inflatedWordsLength, outputfile);
+        position = offsetIndex + sizeof(int) * definitions;
+        extract(inflatedData, inflatedWordsIndexLength, inflatedWordsIndexLength + inflatedWordsLength, outputfile);
     } else {
         qWarning() << "ERROR: Inflated Data is Empty.";
     }
@@ -140,7 +135,7 @@ inline void Lingoes::decompress(QByteArray& inflatedData, int offset, int length
     }
 }
 
-void Lingoes::extract(int idxArray[], QByteArray& inflatedBytes, int offsetDefs, int offsetXml, QString& outputfile)
+void Lingoes::extract(QByteArray& inflatedBytes, int offsetDefs, int offsetXml, QString& outputfile)
 {
     QFile fileout(outputfile);
     fileout.open(QIODevice::WriteOnly|QIODevice::Text);
