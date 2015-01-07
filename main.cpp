@@ -1,6 +1,6 @@
 /*
  *   Read Lingoes Dictionary Files (*.ld2 or *.ldx)
- *   Copyright (C) 2013, 2014 by Symeon Huang <hzwhuang@gmail.com>
+ *   Copyright (C) 2013-2015 by Symeon Huang <hzwhuang@gmail.com>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
