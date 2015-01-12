@@ -94,7 +94,7 @@ void Lingoes::readDictionary(int offsetWithIndex, QString& outputfile)
     qDebug() << QString("XML Address/Size(Decompressed): 0x%1 / %2B").arg(toHexString(inflatedWordsIndexLength + inflatedWordsLength), QString::number(inflatedXmlLength));
     qDebug() << QString("File Size(Decompressed): %1KB").arg((inflatedWordsIndexLength + inflatedWordsLength + inflatedXmlLength) / 1024);
     QByteArray inflatedData;
-    inflateData(deflateStreams, inflatedData);
+    inflateData(deflateStreams, &inflatedData);
     if(!inflatedData.isEmpty()) {
         position = offsetIndex + sizeof(int) * definitions;
         extract(inflatedData, inflatedWordsIndexLength, inflatedWordsIndexLength + inflatedWordsLength, outputfile);
@@ -103,7 +103,7 @@ void Lingoes::readDictionary(int offsetWithIndex, QString& outputfile)
     }
 }
 
-void Lingoes::inflateData(QList<int>& deflateStreams, QByteArray& inflatedData)
+void Lingoes::inflateData(QList<int>& deflateStreams, QByteArray *inflatedData)
 {
     qDebug() << QString("Decompressing %1 data streams.").arg(deflateStreams.size());
     int startOffset = position;
@@ -122,7 +122,7 @@ void Lingoes::inflateData(QList<int>& deflateStreams, QByteArray& inflatedData)
     }
 }
 
-inline void Lingoes::decompress(QByteArray& inflatedData, int offset, quint32 length)
+inline void Lingoes::decompress(QByteArray *inflatedData, int offset, quint32 length)
 {
     //uncompress deflate datastream
     try {
@@ -130,7 +130,7 @@ inline void Lingoes::decompress(QByteArray& inflatedData, int offset, quint32 le
         QByteArray header(4, '\0');
         qToBigEndian(length, reinterpret_cast<uchar*>(header.data()));//see http://doc.qt.io/qt-5/qbytearray.html#qUncompress
         data.prepend(header);
-        inflatedData.append(qUncompress(data));
+        inflatedData->append(qUncompress(data));
     } catch (std::exception e) {
         qWarning() << e.what();
     } catch (const char* e2) {
