@@ -22,6 +22,7 @@
 #include <QDebug>
 #include <QDataStream>
 #include <QTextStream>
+#include <QtEndian>
 #include <iostream>
 
 Lingoes::Lingoes(const QString &openFile)
@@ -121,12 +122,14 @@ void Lingoes::inflateData(QList<int>& deflateStreams, QByteArray& inflatedData)
     }
 }
 
-inline void Lingoes::decompress(QByteArray& inflatedData, int offset, int length)
+inline void Lingoes::decompress(QByteArray& inflatedData, int offset, quint32 length)
 {
     //uncompress deflate datastream
     try {
         QByteArray data = ld2ByteArray.mid(offset, length);
-        data.prepend(QByteArray::number(length));
+        QByteArray header(4, '\0');
+        qToBigEndian(length, reinterpret_cast<uchar*>(header.data()));//see http://doc.qt.io/qt-5/qbytearray.html#qUncompress
+        data.prepend(header);
         inflatedData.append(qUncompress(data));
     } catch (std::exception e) {
         qWarning() << e.what();

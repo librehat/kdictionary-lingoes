@@ -48,7 +48,7 @@ private:
     QTextCodec* wordc;//Words Encoding
     void readDictionary(int offsetWithIndex, QString&);
     void inflateData(QList<int>&, QByteArray&);
-    void decompress(QByteArray&, int, int);
+    void decompress(QByteArray&, int, quint32);
     void extract(QByteArray&, int, int, QString&);
     void detectEncodings(QByteArray&, int, int, const int, const int, int a[]);
     void readDefinitionData(QByteArray&, int, int, const int, int a[], QString s[], int);
