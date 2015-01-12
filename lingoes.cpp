@@ -159,11 +159,10 @@ void Lingoes::extract(QByteArray& inflatedBytes, int offsetDefs, int offsetXml, 
         line.append(" = ");
         line.append(defData[1]);
         out << line << endl;
-        out.flush();
         line.clear();
         counter++;
     }
-
+    out.flush();
     fileout.close();
     qDebug() << "Extracted" << counter << "entries.";
 }
