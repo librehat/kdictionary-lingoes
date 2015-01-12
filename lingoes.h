@@ -47,7 +47,7 @@ private:
     QTextCodec* xmlc;//XML Encoding
     QTextCodec* wordc;//Words Encoding
     void readDictionary(int offsetWithIndex, QString&);
-    void inflateData(QList<int>&, QByteArray *);
+    void inflateData(QVector<int> &, QByteArray *);
     void decompress(QByteArray *, int, quint32);
     void extract(QByteArray&, int, int, QString&);
     void detectEncodings(QByteArray&, int, int, const int, const int, int a[]);
@@ -55,6 +55,6 @@ private:
     void getIdxData(QByteArray&, int, int a[]);
     QString strip(QString);
 
-    const static QList<QByteArray> availableEncodings;
+    const static QVector<QByteArray> availableEncodings;
 };
 #endif // lingoes_H

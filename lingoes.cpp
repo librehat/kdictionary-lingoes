@@ -36,7 +36,7 @@ Lingoes::Lingoes(const QString &openFile)
     inflated_pos = 0;
 }
 
-const QList<QByteArray> Lingoes::availableEncodings = QList<QByteArray>() << "UTF-8" << "UTF-16LE" << "UTF-16BE" << "EUC-JP";
+const QVector<QByteArray> Lingoes::availableEncodings = QVector<QByteArray>() << "UTF-8" << "UTF-16LE" << "UTF-16BE" << "EUC-JP";
 
 void Lingoes::extractToFile(QString& outputfile)
 {
@@ -76,13 +76,13 @@ void Lingoes::readDictionary(int offsetWithIndex, QString& outputfile)
     const int inflatedWordsLength = getInt(offsetWithIndex + 16);
     const int inflatedXmlLength = getInt(offsetWithIndex + 20);
     const int definitions = (offsetCompressedDataHeader - offsetIndex) / 4;
-    QList<int> deflateStreams;
+    QVector<int> deflateStreams;
     position = offsetCompressedDataHeader + 8;//position here represents ByteBuffer's position() in Java
     int offset = getInt(position);//In java, ByteBuffer's getInt() will increase the position by four(an Integer size).
     position += sizeof(int);//Hence, we need to add it to position manually.
     while (offset + position < limit) {
         offset = getInt(position);
-        deflateStreams.append(offset);
+        deflateStreams << offset;
         position += sizeof(int);
     }
     int offsetCompressedData = position;
@@ -103,7 +103,7 @@ void Lingoes::readDictionary(int offsetWithIndex, QString& outputfile)
     }
 }
 
-void Lingoes::inflateData(QList<int>& deflateStreams, QByteArray *inflatedData)
+void Lingoes::inflateData(QVector<int> &deflateStreams, QByteArray *inflatedData)
 {
     qDebug() << QString("Decompressing %1 data streams.").arg(deflateStreams.size());
     int startOffset = position;
