@@ -38,7 +38,7 @@ Lingoes::Lingoes(const QString &openFile)
 
 const QVector<QByteArray> Lingoes::availableEncodings = QVector<QByteArray>() << "UTF-8" << "UTF-16LE" << "UTF-16BE" << "EUC-JP";
 
-void Lingoes::extractToFile(const QString& outputfile)
+void Lingoes::extractToFile(const QString &outputfile)
 {
     qDebug() << "File:" << ld2file;
     qDebug() << "Type:" << ld2ByteArray.mid(1, 3);
@@ -65,7 +65,7 @@ void Lingoes::extractToFile(const QString& outputfile)
     }
 }
 
-void Lingoes::readDictionary(int offsetWithIndex, const QString& outputfile)
+void Lingoes::readDictionary(const int offsetWithIndex, const QString &outputfile)
 {
     //analyze dictionary file's header
     qDebug() << "Dictionary Type:" << "0x" + QByteArray::number(getInt(offsetWithIndex));
@@ -103,7 +103,7 @@ void Lingoes::readDictionary(int offsetWithIndex, const QString& outputfile)
     }
 }
 
-void Lingoes::inflateData(QVector<int> &deflateStreams, QByteArray *inflatedData)
+void Lingoes::inflateData(const QVector<int> &deflateStreams, QByteArray *inflatedData)
 {
     qDebug() << QString("Decompressing %1 data streams.").arg(deflateStreams.size());
     int startOffset = position;
@@ -122,7 +122,7 @@ void Lingoes::inflateData(QVector<int> &deflateStreams, QByteArray *inflatedData
     }
 }
 
-inline void Lingoes::decompress(QByteArray *inflatedData, int offset, quint32 length)
+inline void Lingoes::decompress(QByteArray *inflatedData, const int offset, const quint32 length)
 {
     //uncompress deflate datastream
     try {
@@ -138,7 +138,7 @@ inline void Lingoes::decompress(QByteArray *inflatedData, int offset, quint32 le
     }
 }
 
-void Lingoes::extract(QByteArray& inflatedBytes, int offsetDefs, int offsetXml, const QString& outputfile)
+void Lingoes::extract(const QByteArray &inflatedBytes, const int offsetDefs, const int offsetXml, const QString &outputfile)
 {
     QFile fileout(outputfile);
     fileout.open(QIODevice::WriteOnly|QIODevice::Text);
@@ -167,7 +167,7 @@ void Lingoes::extract(QByteArray& inflatedBytes, int offsetDefs, int offsetXml, 
     qDebug() << "Extracted" << counter << "entries.";
 }
 
-void Lingoes::detectEncodings(QByteArray& inflatedBytes, int offsetWords, int offsetXml, const int defTotal, const int dataLen, int idxData[])
+void Lingoes::detectEncodings(const QByteArray &inflatedBytes, const int offsetWords, const int offsetXml, const int defTotal, const int dataLen, int idxData[])
 {
     /*
      * Try to detect the Encodings.
@@ -245,7 +245,7 @@ void Lingoes::detectEncodings(QByteArray& inflatedBytes, int offsetWords, int of
     }
 }
 
-void Lingoes::readDefinitionData(QByteArray& inflatedBytes, int offsetWords, int offsetXml, const int dataLen, int idxData[], QString defData[], int i)
+void Lingoes::readDefinitionData(const QByteArray &inflatedBytes, const int offsetWords, const int offsetXml, const int dataLen, int idxData[], QString defData[], const int i)
 {
     //get all data from definition area
     getIdxData(inflatedBytes, dataLen * i, idxData);
@@ -272,7 +272,7 @@ void Lingoes::readDefinitionData(QByteArray& inflatedBytes, int offsetWords, int
     defData[0] = word;
 }
 
-QString Lingoes::strip(QString xml)
+QString Lingoes::strip(const QString &xml)
 {
     /*
      * Strip some formats characters.
@@ -306,7 +306,7 @@ QString Lingoes::strip(QString xml)
     return QString();
 }
 
-void Lingoes::getIdxData(QByteArray& inflatedBytes, int pos, int wordIdxData[])
+void Lingoes::getIdxData(const QByteArray &inflatedBytes, const int pos, int wordIdxData[])
 {
     inflated_pos = pos;
     wordIdxData[0] = getInt(inflatedBytes ,inflated_pos);
@@ -324,32 +324,32 @@ void Lingoes::getIdxData(QByteArray& inflatedBytes, int pos, int wordIdxData[])
 }
 
 //Inspired by https://github.com/Dasister/Game-Server-Query/blob/master/sourcequery.cpp
-inline int Lingoes::getInt(int index)
+inline int Lingoes::getInt(const int index)
 {
     return *(reinterpret_cast<int *>(ld2ByteArray.mid(index, sizeof(int)).data()));
 }
 
-inline int Lingoes::getInt(QByteArray& ba, int index)
+inline int Lingoes::getInt(const QByteArray &ba, const int index)
 {
     return *(reinterpret_cast<int *>(ba.mid(index, sizeof(int)).data()));
 }
 
-inline qint16 Lingoes::getShort(int index)
+inline qint16 Lingoes::getShort(const int index)
 {
     return *(reinterpret_cast<qint16 *>(ld2ByteArray.mid(index, sizeof(qint16)).data()));
 }
 
-inline qint32 Lingoes::getLong(int index)
+inline qint32 Lingoes::getLong(const int index)
 {
     return *(reinterpret_cast<qint32*>(ld2ByteArray.mid(index, sizeof(qint32)).data()));
 }
 
-inline QByteArray Lingoes::toHexString(qint32 num)
+inline QByteArray Lingoes::toHexString(const qint32 num)
 {
     return QByteArray::number(num, 16).toUpper();
 }
 
-inline QByteArray Lingoes::toHexString(qint16 num)
+inline QByteArray Lingoes::toHexString(const qint16 num)
 {
     return QByteArray::number(num, 16).toUpper();
 }
