@@ -31,7 +31,7 @@ Q_OBJECT
 
 public:
     Lingoes(const QString &);
-    void extractToFile(QString&);
+    void extractToFile(const QString &);
     int getInt(int);
     int getInt(QByteArray&, int);
     qint16 getShort(int);//the short is 16-bit integer
@@ -46,10 +46,10 @@ private:
     QByteArray ld2ByteArray;
     QTextCodec* xmlc;//XML Encoding
     QTextCodec* wordc;//Words Encoding
-    void readDictionary(int offsetWithIndex, QString&);
+    void readDictionary(int offsetWithIndex, const QString &);
     void inflateData(QVector<int> &, QByteArray *);
     void decompress(QByteArray *, int, quint32);
-    void extract(QByteArray&, int, int, QString&);
+    void extract(QByteArray&, int, int, const QString &);
     void detectEncodings(QByteArray&, int, int, const int, const int, int a[]);
     void readDefinitionData(QByteArray&, int, int, const int, int a[], QString s[], int);
     void getIdxData(QByteArray&, int, int a[]);

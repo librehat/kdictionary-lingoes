@@ -20,29 +20,38 @@
 #include <QCoreApplication>
 #include <QFileInfo>
 #include <QStringList>
+#include <QCommandLineParser>
 #include <QDebug>
 #include "lingoes.h"
 
 int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
-    if(app.arguments().count() < 3) {
-        qCritical()<<"Insufficient arguments.\n"
-                   <<"Usage:\n"
-                   <<"./kdictionary-lingoes <LD2/LDX FILE> <OUTPUT FILE>\n";
+    app.setApplicationName("KDictionary-Lingoes");
+    app.setApplicationVersion("1.0");
+
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Lingoes dictionary file (LD2/LDX) reader/extracter.");
+    parser.addHelpOption();
+    parser.addVersionOption();
+
+    QCommandLineOption ldxfile("i", "Input Lingoes dictionary file (default: input.ld2)", "input", "input.ld2");
+    QCommandLineOption outfile("o", "Output extracted text file (default: output.txt)", "output", "output.txt");
+    parser.addOption(ldxfile);
+    parser.addOption(outfile);
+
+    parser.process(app);
+
+    const QString inputFile = parser.value(ldxfile);
+    QFileInfo ld2FileInfo(inputFile);
+    if (!ld2FileInfo.exists()) {
+        qCritical()<<"Error: Input file" << inputFile << "doesn't exist.";
         exit(1);
     }
 
-    QFileInfo ld2FileInfo(app.arguments().at(1));
-    if (!ld2FileInfo.exists()) {
-        qCritical()<<"Error: Input file doesn't exist.";
-        exit(2);
-    }
-
     QString ld2file = ld2FileInfo.canonicalFilePath();
-    QString outputfile(app.arguments().at(2));
-    Lingoes ext(ld2file);
-    ext.extractToFile(outputfile);
+    Lingoes ldx(ld2file);
+    ldx.extractToFile(parser.value(outfile));
 
     return 0;
 }

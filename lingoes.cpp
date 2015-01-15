@@ -38,7 +38,7 @@ Lingoes::Lingoes(const QString &openFile)
 
 const QVector<QByteArray> Lingoes::availableEncodings = QVector<QByteArray>() << "UTF-8" << "UTF-16LE" << "UTF-16BE" << "EUC-JP";
 
-void Lingoes::extractToFile(QString& outputfile)
+void Lingoes::extractToFile(const QString& outputfile)
 {
     qDebug() << "File:" << ld2file;
     qDebug() << "Type:" << ld2ByteArray.mid(1, 3);
@@ -65,7 +65,7 @@ void Lingoes::extractToFile(QString& outputfile)
     }
 }
 
-void Lingoes::readDictionary(int offsetWithIndex, QString& outputfile)
+void Lingoes::readDictionary(int offsetWithIndex, const QString& outputfile)
 {
     //analyze dictionary file's header
     qDebug() << "Dictionary Type:" << "0x" + QByteArray::number(getInt(offsetWithIndex));
@@ -138,7 +138,7 @@ inline void Lingoes::decompress(QByteArray *inflatedData, int offset, quint32 le
     }
 }
 
-void Lingoes::extract(QByteArray& inflatedBytes, int offsetDefs, int offsetXml, QString& outputfile)
+void Lingoes::extract(QByteArray& inflatedBytes, int offsetDefs, int offsetXml, const QString& outputfile)
 {
     QFile fileout(outputfile);
     fileout.open(QIODevice::WriteOnly|QIODevice::Text);
