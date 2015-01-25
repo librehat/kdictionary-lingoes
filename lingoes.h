@@ -29,7 +29,7 @@ class Lingoes : public QObject
 Q_OBJECT
 
 public:
-    Lingoes(const QString &);
+    Lingoes(const QString &, bool _trim = true);
     void extractToFile(const QString &);
     int getInt(const int);
     int getInt(const QByteArray &, const int);
@@ -39,6 +39,7 @@ public:
     QByteArray toHexString(const qint16);
 
 private:
+    const bool trim;
     int position;
     int inflated_pos;
     QString ld2file;

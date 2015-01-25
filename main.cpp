@@ -35,10 +35,13 @@ int main(int argc, char** argv)
     parser.addHelpOption();
     parser.addVersionOption();
 
-    QCommandLineOption ldxfile("i", "Input Lingoes dictionary file (default: input.ld2)", "input", "input.ld2");
-    QCommandLineOption outfile("o", "Output extracted text file (default: output.txt)", "output", "output.txt");
+    QCommandLineOption ldxfile("i", "Input Lingoes dictionary file (default: input.ld2).", "input", "input.ld2");
+    QCommandLineOption outfile("o", "Output extracted text file (default: output.txt).", "output", "output.txt");
+    QCommandLineOption notrim("disable-trim", "Disable HTML tag trimming.");
+
     parser.addOption(ldxfile);
     parser.addOption(outfile);
+    parser.addOption(notrim);
 
     parser.process(app);
 
@@ -50,7 +53,8 @@ int main(int argc, char** argv)
     }
 
     QString ld2file = ld2FileInfo.canonicalFilePath();
-    Lingoes ldx(ld2file);
+    bool trim = !parser.isSet(notrim);
+    Lingoes ldx(ld2file, trim);
     ldx.extractToFile(parser.value(outfile));
 
     return 0;

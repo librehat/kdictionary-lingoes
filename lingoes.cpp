@@ -25,7 +25,8 @@
 #include <QtEndian>
 #include <exception>
 
-Lingoes::Lingoes(const QString &openFile)
+Lingoes::Lingoes(const QString &openFile, bool _trim) :
+    trim(_trim)
 {
     ld2file = openFile;
     QFile file(ld2file);
@@ -274,6 +275,9 @@ void Lingoes::readDefinitionData(const QByteArray &inflatedBytes, const int offs
 
 QString Lingoes::strip(const QString &xml)
 {
+    if (!trim) {
+        return xml;
+    }
     /*
      * Strip some formats characters.
      * TODO: strip HTML tags such as <TD> <TR>
