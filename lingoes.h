@@ -23,7 +23,6 @@
 #include <QObject>
 #include <QTextDecoder>
 #include <QTextCodec>
-#include <exception>
 
 class Lingoes : public QObject
 {

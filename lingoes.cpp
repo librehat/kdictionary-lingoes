@@ -23,7 +23,7 @@
 #include <QDataStream>
 #include <QTextStream>
 #include <QtEndian>
-#include <iostream>
+#include <exception>
 
 Lingoes::Lingoes(const QString &openFile)
 {
