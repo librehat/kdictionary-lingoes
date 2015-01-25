@@ -129,6 +129,7 @@ inline void Lingoes::decompress(QByteArray *inflatedData, const int offset, cons
     try {
         QByteArray data = ld2ByteArray.mid(offset, length);
         QByteArray header(4, '\0');
+        //FIXME: we should prepend expected extracted data length instead of compressed data length
         qToBigEndian(length, reinterpret_cast<uchar*>(header.data()));//see http://doc.qt.io/qt-5/qbytearray.html#qUncompress
         data.prepend(header);
         inflatedData->append(qUncompress(data));
