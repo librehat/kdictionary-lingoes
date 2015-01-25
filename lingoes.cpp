@@ -305,7 +305,7 @@ QString Lingoes::strip(const QString &xml)
             open = xml.indexOf('<', open + 1);
             end = xml.indexOf('>', end + 1);
         } while ((open != -1) && (end != -1));
-        return sb.replace('\t', ' ').replace('\n', ' ').replace('\u001e', ' ').replace('\u001f', ' ');
+        return sb.simplified();
     }
     return QString();
 }
